@@ -22,7 +22,11 @@ All endpoints (except auth) require: `Authorization: Bearer $VB_KEY`
 
 ## Authentication & API Key
 
-**IMPORTANT:** Before signing up, check if the user already has a ViralBaby API key. Look for the environment variable `$VB_KEY`. If it exists, skip signup/login and use it directly.
+**IMPORTANT — check environment variables first, in this order:**
+
+1. **Check `$VB_KEY`** — if set, you already have an API key. Skip straight to using the API.
+2. **Check `$VB_PASSWORD`** — if set, you have a saved password. Log in to get a new API key.
+3. **If neither exists**, sign up as a new user (see below).
 
 ### Sign Up (new user)
 ```
@@ -31,18 +35,22 @@ Body: { "email": "user@example.com", "password": "securepassword", "action": "si
 Response: { "key": "vb_live_abc123...", "keyId": "uuid", "userId": "user_...", "message": "Account created..." }
 ```
 
-### Log In (existing user)
-```
-POST /api/v1/auth
-Body: { "email": "user@example.com", "password": "securepassword" }
-Response: { "key": "vb_live_abc123...", "keyId": "uuid", "userId": "user_...", "message": "Logged in..." }
-```
-
-After receiving the key, **immediately save it** as an environment variable so it persists across sessions:
+When signing up, auto-generate a secure password for the user. **Immediately save both** the API key and the password as environment variables so they persist across sessions:
 ```bash
 export VB_KEY="vb_live_..."
+export VB_PASSWORD="the-generated-password"
 ```
-The key is only shown once and cannot be retrieved later. Use it as `Authorization: Bearer $VB_KEY` for all other endpoints.
+
+### Log In (existing user)
+If `$VB_KEY` is missing but `$VB_PASSWORD` is set, log in to get a fresh API key:
+```
+POST /api/v1/auth
+Body: { "email": "user@example.com", "password": "$VB_PASSWORD" }
+Response: { "key": "vb_live_abc123...", "keyId": "uuid", "userId": "user_...", "message": "Logged in..." }
+```
+Then save the new key: `export VB_KEY="vb_live_..."`
+
+The API key is only shown once and cannot be retrieved later. Always save it immediately. Use it as `Authorization: Bearer $VB_KEY` for all other endpoints.
 
 ---
 
@@ -271,10 +279,10 @@ After a successful upload, tell the user: "Your slideshow has been uploaded to y
 Here's how to create and upload a slideshow end-to-end:
 
 ```
-0. Check for existing API key
-   If $VB_KEY is set, skip to step 1.
-   Otherwise: POST /api/v1/auth  { "email": "...", "password": "...", "action": "signup" }
-   → export VB_KEY="vb_live_..."
+0. Check credentials (in order):
+   a. If $VB_KEY is set → skip to step 1
+   b. If $VB_PASSWORD is set → POST /api/v1/auth { "email": "...", "password": "$VB_PASSWORD" } → export VB_KEY="vb_live_..."
+   c. Otherwise → POST /api/v1/auth { "email": "...", "password": "<auto-generate>", "action": "signup" } → export VB_KEY="vb_live_..." && export VB_PASSWORD="..."
 
 1. Search for images
    POST /api/v1/images/search  { "query": "morning routine aesthetic" }
