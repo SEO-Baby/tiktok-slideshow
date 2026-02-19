@@ -1,23 +1,28 @@
 ---
 name: tiktok-slideshow
 description: >
-  Creates and publishes TikTok slideshows via the ViralBaby API. Use when the user wants to:
-  create TikTok slideshows or carousels, find/search for images for social media content,
-  post or upload content to TikTok, edit slideshow text with AI, or manage image collections
-  for content creation. Do NOT use for: general TikTok account management, TikTok analytics
-  or metrics, video editing (this is for photo slideshows only), or any task unrelated to
-  creating visual slideshow content for TikTok.
+  Creates TikTok image carousels (slideshows with text overlays on photos) via the ViralBaby API.
+  Use when the user wants to: create TikTok slideshows or carousels, find/search for background
+  images for social media content, post or upload slideshow content to TikTok, edit slide text
+  with AI, or manage image collections for content creation.
+  Do NOT use for: general TikTok account management, TikTok analytics or metrics, video editing
+  or video creation (this is for photo slideshows only), non-TikTok social media platforms, or
+  any task unrelated to creating visual slideshow content for TikTok.
 ---
 
 # ViralBaby API v1 — TikTok Slideshow Creation
 
+Create image carousels with text overlays for TikTok — search images, build slides, edit with AI, and upload to TikTok drafts.
+
 Base URL: `https://viralbaby.co`
 
-All endpoints (except auth) require: `Authorization: Bearer vb_live_...`
+All endpoints (except auth) require: `Authorization: Bearer $VB_KEY`
 
 ---
 
-## Getting Started
+## Authentication & API Key
+
+**IMPORTANT:** Before signing up, check if the user already has a ViralBaby API key. Look for the environment variable `$VB_KEY`. If it exists, skip signup/login and use it directly.
 
 ### Sign Up (new user)
 ```
@@ -33,7 +38,11 @@ Body: { "email": "user@example.com", "password": "securepassword" }
 Response: { "key": "vb_live_abc123...", "keyId": "uuid", "userId": "user_...", "message": "Logged in..." }
 ```
 
-Save the `key` immediately — it is only shown once. Use it as `Authorization: Bearer vb_live_...` for all other endpoints.
+After receiving the key, **immediately save it** as an environment variable so it persists across sessions:
+```bash
+export VB_KEY="vb_live_..."
+```
+The key is only shown once and cannot be retrieved later. Use it as `Authorization: Bearer $VB_KEY` for all other endpoints.
 
 ---
 
@@ -81,7 +90,7 @@ POST /api/v1/collections/from-search
 Body: { "name": "Beach Vibes", "searchId": "uuid", "imageIndices": [0, 3, 5, 7] }
 Response: { "collection": { "id": "uuid", "name": "Beach Vibes" }, "stats": { "total": 4, "successful": 4, "failed": 0 } }
 ```
-This downloads the selected search result images to permanent storage.
+This downloads the selected search result images to permanent storage. Maximum 30 images per request.
 
 ### Get Collection Details
 ```
@@ -107,10 +116,18 @@ Response: [{ "id": "uuid", "title": "...", "status": "draft", "slideCount": 5, "
 ```
 
 ### Create Slideshow
+Each slide is a background image with text overlays. Maximum 30 slides per slideshow.
+
 Each slide can get its image from three sources (in priority order):
 1. `imageUrl` — direct URL to any image
 2. `searchId` + `imageIndex` — reference a previous search result by index
 3. `collectionId` — random image from a collection
+
+Text element options:
+- `text` (required) — the text content
+- `type` (required) — `"title"` (larger, bolder) or `"subtitle"` (smaller)
+- `fontSize` (optional) — font size in px, defaults to 16 for title, 14 for subtitle
+- `textStyle` (optional) — `"stroke"` (default, white text with black outline), `"solid"` (dark background), or `"transparent"` (shadow only)
 
 ```
 POST /api/v1/slideshows
@@ -125,13 +142,13 @@ Body: {
     {
       "searchId": "uuid",
       "imageIndex": 3,
-      "textElements": [{ "text": "Here's why", "type": "title" }]
+      "textElements": [{ "text": "Here's why", "type": "title", "fontSize": 18 }]
     },
     {
       "collectionId": "uuid",
       "textElements": [
         { "text": "Tip #1: Wake up early", "type": "title" },
-        { "text": "Even 30 minutes makes a difference", "type": "subtitle" }
+        { "text": "Even 30 minutes makes a difference", "type": "subtitle", "textStyle": "solid" }
       ]
     }
   ]
@@ -140,15 +157,12 @@ Response: {
   "id": "uuid",
   "title": "5 Morning Routine Tips",
   "previewUrl": "https://viralbaby.co/preview/uuid",
-  "slides": [...],
+  "slides": [{ "id": "slide-...", "imageUrl": "...", "textElements": [...] }],
   "status": "draft"
 }
 ```
 
 Aspect ratios: `3:4` (default, best for TikTok), `1:1`, `9:16`, `4:5`
-
-Text element types: `title` (larger, bolder), `subtitle` (smaller)
-Text styles: `stroke` (default, white text with black outline), `solid` (dark background), `transparent` (shadow only)
 
 ### Get Slideshow
 ```
@@ -220,7 +234,7 @@ Response: {
 }
 ```
 
-The URL redirects through TikTok's OAuth flow and saves tokens automatically. After completing auth, you'll see a success page confirming the connection.
+Give the `authUrl` to the user to open in their browser. They will complete TikTok's OAuth flow and see a success page when done. This only needs to be done once.
 
 ### Check Connection Status
 ```
@@ -230,8 +244,8 @@ Response: { "connected": true, "tokenExpired": false, "user": { "display_name": 
 Response: { "connected": false, "message": "TikTok not connected..." }
 ```
 
-### Upload to TikTok
-Renders all slides server-side and uploads to TikTok drafts.
+### Upload to TikTok Drafts
+Renders all slides server-side and uploads to the user's **TikTok drafts** (not published directly). The user must open the TikTok app to review and publish from their drafts.
 
 ```
 POST /api/v1/tiktok/upload
@@ -239,16 +253,19 @@ Body: { "slideshowId": "uuid", "title": "5 Tips", "description": "#productivity 
 Response: { "success": true, "publishId": "tiktok-publish-id", "renderedSlides": 5 }
 ```
 
+After a successful upload, tell the user: "Your slideshow has been uploaded to your TikTok drafts. Open the TikTok app to review and publish it."
+
 ---
 
 ## Complete Workflow Example
 
-Here's how an AI agent creates and publishes a slideshow:
+Here's how to create and upload a slideshow end-to-end:
 
 ```
-0. Sign up or log in
-   POST /api/v1/auth  { "email": "you@example.com", "password": "...", "action": "signup" }
-   → save key as Authorization header
+0. Check for existing API key
+   If $VB_KEY is set, skip to step 1.
+   Otherwise: POST /api/v1/auth  { "email": "...", "password": "...", "action": "signup" }
+   → export VB_KEY="vb_live_..."
 
 1. Search for images
    POST /api/v1/images/search  { "query": "morning routine aesthetic" }
@@ -258,14 +275,16 @@ Here's how an AI agent creates and publishes a slideshow:
    POST /api/v1/collections/from-search  { "name": "Morning Routine", "searchId": "...", "imageIndices": [0, 2, 5, 8, 11] }
    → save collectionId
 
-3. Create the slideshow
+3. Create the slideshow (one slide per element in the array, up to 30 slides)
    POST /api/v1/slideshows  {
      "title": "5 Morning Routine Tips",
      "aspectRatio": "3:4",
      "slides": [
        { "collectionId": "...", "textElements": [{ "text": "Your morning routine is broken", "type": "title" }] },
-       { "collectionId": "...", "textElements": [{ "text": "Tip #1: Wake up at the same time", "type": "title" }] },
-       ...
+       { "collectionId": "...", "textElements": [{ "text": "Tip #1: Wake up at the same time", "type": "title" }, { "text": "Consistency beats motivation", "type": "subtitle" }] },
+       { "collectionId": "...", "textElements": [{ "text": "Tip #2: No phone for 30 min", "type": "title" }] },
+       { "collectionId": "...", "textElements": [{ "text": "Tip #3: Move your body", "type": "title" }] },
+       { "collectionId": "...", "textElements": [{ "text": "Follow for more tips", "type": "title" }] }
      ]
    }
    → save slideshowId, get previewUrl
@@ -274,14 +293,15 @@ Here's how an AI agent creates and publishes a slideshow:
    POST /api/v1/edit  { "slideshowId": "...", "slideIndex": 0, "prompt": "make the hook shorter and more shocking" }
 
 5. Preview the slideshow
-   Open previewUrl in browser to verify
+   Share previewUrl with the user so they can verify in their browser
 
 6. Connect TikTok (first time only)
-   GET /api/v1/tiktok/connect  → open authUrl in browser → complete OAuth
+   GET /api/v1/tiktok/connect  → give authUrl to user to open in browser → complete OAuth
    GET /api/v1/tiktok/status   → verify connected: true
 
-7. Upload to TikTok
+7. Upload to TikTok drafts
    POST /api/v1/tiktok/upload  { "slideshowId": "...", "title": "5 Morning Routine Tips", "description": "#morningroutine #productivity" }
+   → Tell user to open TikTok app to review and publish from drafts
 ```
 
 ---
