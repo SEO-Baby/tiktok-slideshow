@@ -249,9 +249,18 @@ Renders all slides server-side and uploads to the user's **TikTok drafts** (not 
 
 ```
 POST /api/v1/tiktok/upload
-Body: { "slideshowId": "uuid", "title": "5 Tips", "description": "#productivity #morning" }
+Body: {
+  "slideshowId": "uuid",
+  "title": "5 Morning Routine Tips",
+  "description": "Try these tips tomorrow morning",
+  "hashtags": ["morningroutine", "productivity", "tips"]
+}
 Response: { "success": true, "publishId": "tiktok-publish-id", "renderedSlides": 5 }
 ```
+
+- `title` — short title for the TikTok post
+- `description` — caption text (up to 4000 characters, can be a longer detailed description)
+- `hashtags` — array of up to 5 hashtags (with or without `#` prefix, auto-added). Appended to the description.
 
 After a successful upload, tell the user: "Your slideshow has been uploaded to your TikTok drafts. Open the TikTok app to review and publish it."
 
@@ -300,7 +309,7 @@ Here's how to create and upload a slideshow end-to-end:
    GET /api/v1/tiktok/status   → verify connected: true
 
 7. Upload to TikTok drafts
-   POST /api/v1/tiktok/upload  { "slideshowId": "...", "title": "5 Morning Routine Tips", "description": "#morningroutine #productivity" }
+   POST /api/v1/tiktok/upload  { "slideshowId": "...", "title": "5 Morning Routine Tips", "description": "Try these tomorrow", "hashtags": ["morningroutine", "productivity"] }
    → Tell user to open TikTok app to review and publish from drafts
 ```
 
