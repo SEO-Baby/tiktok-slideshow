@@ -54,6 +54,49 @@ The API key is only shown once and cannot be retrieved later. Always save it imm
 
 ---
 
+## User Preferences
+
+Store and retrieve the user's business context and content style. **Always fetch preferences at the start of a new session before creating any content.**
+
+### Get Preferences
+```
+GET /api/v1/preferences
+Response: {
+  "style": { "id": "uuid", "name": "Casual", "content": "8th grade reading level, lowercase, first-person POV..." } | null,
+  "product_info": { "id": "uuid", "name": "My Business", "content": "We sell organic skincare products..." } | null
+}
+```
+
+### Save or Update a Preference
+```
+PUT /api/v1/preferences
+Body: { "type": "style", "name": "My Style", "content": "casual tone, 8th grade reading level..." }
+Body: { "type": "product_info", "name": "My Business", "content": "we sell X to Y audience..." }
+Response: { "id": "uuid", "type": "style", "name": "...", "content": "..." }
+```
+
+Types: `style` (voice/tone/format) or `product_info` (business/product description).
+
+**Workflow:**
+1. On first session: `GET /api/v1/preferences` — if both are null, ask the user for their business description and content style, then save with `PUT`
+2. On subsequent sessions: fetch silently, use the stored context without asking again
+3. User can update preferences anytime by asking (e.g. "update my style to be more professional")
+
+---
+
+## Content Ideation Process
+
+Before creating a slideshow, always think through:
+
+1. **Hook** — what makes someone stop scrolling? Lead with a bold claim, surprising fact, relatable pain point, or "you're doing X wrong" angle
+2. **Content** — what does the audience actually need to hear? Use the stored `product_info` for business context
+3. **Voice** — use the stored `style` preference for tone and format (reading level, POV, capitalization, etc.)
+4. **CTA** — last slide should drive action: follow, save, comment, or visit
+
+Do NOT ask the user to describe their business or style on every session if preferences are already stored.
+
+---
+
 ## Image Search
 
 ### Search Unsplash
@@ -283,6 +326,11 @@ Here's how to create and upload a slideshow end-to-end:
    a. If $VB_KEY is set → skip to step 1
    b. If $VB_PASSWORD is set → POST /api/v1/auth { "email": "...", "password": "$VB_PASSWORD" } → export VB_KEY="vb_live_..."
    c. Otherwise → POST /api/v1/auth { "email": "...", "password": "<auto-generate>", "action": "signup" } → export VB_KEY="vb_live_..." && export VB_PASSWORD="..."
+
+0b. Fetch preferences
+   GET /api/v1/preferences
+   → If style or product_info is null, ask user and save with PUT /api/v1/preferences
+   → Use stored context for all content decisions going forward
 
 1. Search for images
    POST /api/v1/images/search  { "query": "morning routine aesthetic" }
