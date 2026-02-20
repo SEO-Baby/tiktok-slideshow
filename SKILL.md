@@ -102,7 +102,7 @@ Do NOT ask the user to describe their business or style on every session if pref
 ### Search Unsplash
 ```
 POST /api/v1/images/search
-Body: { "query": "sunset beach", "per_page": 20, "page": 1 }
+Body: { "query": "sunset beach", "per_page": 20, "page": 1, "color": "teal" }
 Response: {
   "searchId": "uuid",
   "results": [{
@@ -116,7 +116,28 @@ Response: {
   "total": 500
 }
 ```
-Save `searchId` — you'll need it to create collections or reference images in slideshows.
+
+Save `searchId` — needed for collection creation and the preview page URL.
+
+**`color` parameter** (optional) — filter results by dominant color. Best values for dark slideshow backgrounds:
+- `teal` — moody, atmospheric (works great for most topics)
+- `black` — very dark, high drama
+- `blue` — cool, calm, professional
+- Omit for no filter (broadest results)
+
+Results are automatically diversified across photographers — no two consecutive photos from the same person.
+
+**Image selection modes:**
+
+**Auto mode** (AI picks, no human review):
+- Search with a `color` filter matching the content mood
+- Use descriptions to reason about background suitability: prefer images described as landscapes, architecture, abstract, nature, or atmospheric scenes — avoid portraits, close-up faces, and busy text-heavy scenes
+- Pick 8–12 images from across the result indices (not just the first few)
+
+**Preview mode** (human picks):
+- After searching, share the preview URL: `https://viralbaby.co/preview/search/{searchId}`
+- Tell the user: "Here are the search results — tell me which numbers you want to use (e.g. '1, 3, 5, 8')"
+- Wait for their response, then use those indices to create the collection
 
 ---
 
