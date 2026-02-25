@@ -18,6 +18,8 @@ Base URL: `https://viralbaby.co`
 
 All endpoints (except auth) require: `Authorization: Bearer $VB_KEY`
 
+**All indices are 1-based** — image indices, slide indices, etc. Slide 1 is the first slide.
+
 ---
 
 ## Authentication & API Key
@@ -106,7 +108,7 @@ Body: { "query": "sunset beach", "per_page": 20, "page": 1, "color": "teal" }
 Response: {
   "searchId": "uuid",
   "results": [{
-    "index": 0,
+    "index": 1,
     "id": "unsplash-id",
     "description": "A sunset over the ocean",
     "thumbnailUrl": "https://...",
@@ -159,7 +161,7 @@ Response: { "id": "uuid", "name": "Beach Vibes" }
 ### Create Collection from Search Results
 ```
 POST /api/v1/collections/from-search
-Body: { "name": "Beach Vibes", "searchId": "uuid", "imageIndices": [0, 3, 5, 7] }
+Body: { "name": "Beach Vibes", "searchId": "uuid", "imageIndices": [1, 4, 6, 8] }
 Response: { "collection": { "id": "uuid", "name": "Beach Vibes" }, "stats": { "total": 4, "successful": 4, "failed": 0 } }
 ```
 This downloads the selected search result images to permanent storage. Maximum 30 images per request.
@@ -192,14 +194,14 @@ Each slide is a background image with text overlays. Maximum 30 slides per slide
 
 Each slide can get its image from three sources (in priority order):
 1. `imageUrl` — direct URL to any image
-2. `searchId` + `imageIndex` — reference a previous search result by index
+2. `searchId` + `imageIndex` — reference a previous search result by 1-based index
 3. `collectionId` — random image from a collection
 
 Text element options:
 - `text` (required) — the text content
 - `type` (required) — `"title"` (larger, bolder) or `"subtitle"` (smaller)
 - `fontSize` (optional) — font size in px, defaults to 16 for title, 14 for subtitle
-- `textStyle` (optional) — `"stroke"` (default, white text with black outline), `"solid"` (dark background), or `"transparent"` (shadow only)
+- Text style is always white text with black outline (no other options)
 
 ```
 POST /api/v1/slideshows
@@ -213,14 +215,14 @@ Body: {
     },
     {
       "searchId": "uuid",
-      "imageIndex": 3,
+      "imageIndex": 3,  // 1-indexed
       "textElements": [{ "text": "Here's why", "type": "title", "fontSize": 18 }]
     },
     {
       "collectionId": "uuid",
       "textElements": [
         { "text": "Tip #1: Wake up early", "type": "title" },
-        { "text": "Even 30 minutes makes a difference", "type": "subtitle", "textStyle": "solid" }
+        { "text": "Even 30 minutes makes a difference", "type": "subtitle" }
       ]
     }
   ]
@@ -260,8 +262,8 @@ Renders slides as JPEG images with text overlaid on background images. Returns S
 
 ```
 POST /api/v1/slideshows/{id}/render
-Body: { "slideIndices": [0, 2] }   // optional, defaults to all slides
-Response: { "renderedSlides": [{ "index": 0, "url": "https://s3.../rendered-slide.jpg" }] }
+Body: { "slideIndices": [1, 3] }   // optional (1-indexed), defaults to all slides
+Response: { "renderedSlides": [{ "index": 1, "url": "https://s3.../rendered-slide.jpg" }] }
 ```
 
 ---
@@ -275,14 +277,14 @@ Uses AI to modify a slide's text based on natural language instructions.
 POST /api/v1/edit
 Body: {
   "slideshowId": "uuid",
-  "slideIndex": 0,
+  "slideIndex": 1,
   "prompt": "make the hook more punchy and add a subtitle"
 }
 Response: {
   "updatedSlide": {
     "textElements": [
-      { "text": "Stop doing this every morning", "type": "title", "fontSize": 16, "textStyle": "stroke" },
-      { "text": "it's ruining your productivity", "type": "subtitle", "fontSize": 14, "textStyle": "stroke" }
+      { "text": "Stop doing this every morning", "type": "title", "fontSize": 16 },
+      { "text": "it's ruining your productivity", "type": "subtitle", "fontSize": 14 }
     ]
   },
   "changes": { "description": "Rewrote hook to be more direct, added subtitle" }
@@ -358,7 +360,7 @@ Here's how to create and upload a slideshow end-to-end:
    → save searchId
 
 2. Create a collection from search results
-   POST /api/v1/collections/from-search  { "name": "Morning Routine", "searchId": "...", "imageIndices": [0, 2, 5, 8, 11] }
+   POST /api/v1/collections/from-search  { "name": "Morning Routine", "searchId": "...", "imageIndices": [1, 3, 6, 9, 12] }
    → save collectionId
 
 3. Create the slideshow (one slide per element in the array, up to 30 slides)
@@ -376,7 +378,7 @@ Here's how to create and upload a slideshow end-to-end:
    → save slideshowId, get previewUrl
 
 4. (Optional) Edit a slide with AI
-   POST /api/v1/edit  { "slideshowId": "...", "slideIndex": 0, "prompt": "make the hook shorter and more shocking" }
+   POST /api/v1/edit  { "slideshowId": "...", "slideIndex": 1, "prompt": "make the hook shorter and more shocking" }
 
 5. Preview the slideshow
    Share previewUrl with the user so they can verify in their browser
