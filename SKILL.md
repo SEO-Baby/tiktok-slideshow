@@ -328,7 +328,7 @@ Response: { "success": true, "publishId": "tiktok-publish-id", "renderedSlides":
 ```
 
 - `title` — short title for the TikTok post
-- `description` — caption text (up to 4000 characters, can be a longer detailed description)
+- `description` — caption text, up to 4000 characters. **Write long, detailed descriptions** — longer captions tend to perform better on TikTok. Include storytelling, context, call-to-action, and relatable hooks. Aim for 500–2000 characters minimum, not just 1-2 sentences.
 - `hashtags` — array of up to 5 hashtags (with or without `#` prefix, auto-added). Appended to the description.
 
 After a successful upload, tell the user: "Your slideshow has been uploaded to your TikTok drafts. Open the TikTok app to review and publish it."
@@ -385,7 +385,7 @@ Here's how to create and upload a slideshow end-to-end:
    GET /api/v1/tiktok/status   → verify connected: true
 
 7. Upload to TikTok drafts
-   POST /api/v1/tiktok/upload  { "slideshowId": "...", "title": "5 Morning Routine Tips", "description": "Try these tomorrow", "hashtags": ["morningroutine", "productivity"] }
+   POST /api/v1/tiktok/upload  { "slideshowId": "...", "title": "5 Morning Routine Tips", "description": "I used to wake up and immediately reach for my phone...\n\n(write a long, detailed caption — 500-2000+ chars)", "hashtags": ["morningroutine", "productivity"] }
    → Tell user to open TikTok app to review and publish from drafts
 ```
 
