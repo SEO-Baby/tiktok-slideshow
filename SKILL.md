@@ -245,11 +245,33 @@ Response: { "id": "uuid", "title": "...", "slides": [...], "status": "draft", "p
 ```
 
 ### Update Slideshow
+Use this to edit slides — change text, reorder, add/remove slides, update title, etc.
+
 ```
 PUT /api/v1/slideshows/{id}
 Body: { "title": "New Title", "slides": [...], "status": "ready_to_publish" }
 Response: { "id": "uuid", "title": "New Title", ... }
 ```
+
+**How to edit slides:**
+1. `GET /api/v1/slideshows/{id}` — fetch current slideshow with all slides
+2. Modify the `slides` array as needed (change text, reorder, add/remove)
+3. `PUT /api/v1/slideshows/{id}` with the updated `slides` array
+
+Each slide in the array has this structure:
+```json
+{
+  "id": "slide-uuid",
+  "imageUrl": "https://cdn.viralbaby.co/...",
+  "aspectRatio": "3:4",
+  "textElements": [
+    { "text": "Your hook text here", "type": "title", "fontSize": 16 },
+    { "text": "Supporting subtitle", "type": "subtitle", "fontSize": 14 }
+  ]
+}
+```
+
+Keep existing `id` and `imageUrl` when editing text — only change what you need.
 
 ### Delete Slideshow
 ```
@@ -265,33 +287,6 @@ POST /api/v1/slideshows/{id}/render
 Body: { "slideIndices": [1, 3] }   // optional (1-indexed), defaults to all slides
 Response: { "renderedSlides": [{ "index": 1, "url": "https://s3.../rendered-slide.jpg" }] }
 ```
-
----
-
-## AI Editing
-
-### Edit Slide with AI
-Uses AI to modify a slide's text based on natural language instructions.
-
-```
-POST /api/v1/edit
-Body: {
-  "slideshowId": "uuid",
-  "slideIndex": 1,
-  "prompt": "make the hook more punchy and add a subtitle"
-}
-Response: {
-  "updatedSlide": {
-    "textElements": [
-      { "text": "Stop doing this every morning", "type": "title", "fontSize": 16 },
-      { "text": "it's ruining your productivity", "type": "subtitle", "fontSize": 14 }
-    ]
-  },
-  "changes": { "description": "Rewrote hook to be more direct, added subtitle" }
-}
-```
-
-The edit is auto-saved to the slideshow.
 
 ---
 
@@ -377,8 +372,10 @@ Here's how to create and upload a slideshow end-to-end:
    }
    → save slideshowId, get previewUrl
 
-4. (Optional) Edit a slide with AI
-   POST /api/v1/edit  { "slideshowId": "...", "slideIndex": 1, "prompt": "make the hook shorter and more shocking" }
+4. (Optional) Edit slides
+   GET /api/v1/slideshows/{id}  → get current slides
+   Modify text/elements as needed, then:
+   PUT /api/v1/slideshows/{id}  { "slides": [...updated slides...] }
 
 5. Preview the slideshow
    Share previewUrl with the user so they can verify in their browser
