@@ -3,8 +3,8 @@ name: tiktok-slideshow
 description: >
   Creates TikTok image carousels (slideshows with text overlays on photos) via the ViralBaby API.
   Use when the user wants to: create TikTok slideshows or carousels, find/search for background
-  images for social media content, post or upload slideshow content to TikTok, edit slide text
-  with AI, or manage image collections for content creation.
+  images for social media content, post or upload slideshow content to TikTok, edit slide text,
+  or manage image collections for content creation.
   Do NOT use for: general TikTok account management, TikTok analytics or metrics, video editing
   or video creation (this is for photo slideshows only), non-TikTok social media platforms, or
   any task unrelated to creating visual slideshow content for TikTok.
@@ -12,7 +12,7 @@ description: >
 
 # ViralBaby API v1 — TikTok Slideshow Creation
 
-Create image carousels with text overlays for TikTok — search images, build slides, edit with AI, and upload to TikTok drafts.
+Create image carousels with text overlays for TikTok — search images, build slides, edit text, and upload to TikTok drafts.
 
 Base URL: `https://viralbaby.co`
 
@@ -200,8 +200,9 @@ Each slide can get its image from three sources (in priority order):
 Text element options:
 - `text` (required) — the text content
 - `type` (required) — `"title"` (larger, bolder) or `"subtitle"` (smaller)
-- `fontSize` (optional) — font size in px, defaults to 16 for title, 14 for subtitle
-- Text style is always white text with black outline (no other options)
+- `fontSize` (optional) — font size in px, defaults to 16 for title, 14 for subtitle. For better readability on TikTok, consider using 18–20 for titles.
+- Text is always white with black outline. Long text auto-wraps to fit within the slide.
+- Text positioning is automatic: single elements center vertically, title + subtitle position at 40%/60% for clear separation.
 
 ```
 POST /api/v1/slideshows
@@ -321,7 +322,7 @@ POST /api/v1/tiktok/upload
 Body: {
   "slideshowId": "uuid",
   "title": "5 Morning Routine Tips",
-  "description": "Try these tips tomorrow morning",
+  "description": "I used to wake up exhausted every single day. Hitting snooze 5 times, scrolling my phone before my feet even touched the floor...\n\nThen I made 3 small changes and everything shifted. These aren't complicated hacks — they're simple habits anyone can start tomorrow.\n\nSave this for your morning tomorrow 👇",
   "hashtags": ["morningroutine", "productivity", "tips"]
 }
 Response: { "success": true, "publishId": "tiktok-publish-id", "renderedSlides": 5 }
