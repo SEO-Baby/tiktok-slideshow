@@ -392,6 +392,50 @@ Here's how to create and upload a slideshow end-to-end:
 
 ---
 
+## Billing
+
+Free tier: 5 TikTok uploads. Pro: $49 one-time payment, unlimited uploads.
+
+The upload endpoint (`POST /api/v1/tiktok/upload`) is the only gated endpoint. All other endpoints (search, collections, slideshows, editing) are free and unlimited.
+
+### Check Billing Status
+```
+GET /api/v1/billing
+Authorization: Bearer $VB_KEY
+Response: {
+  "plan": "free",
+  "uploadCount": 3,
+  "limit": 5,
+  "upgradeUrl": "https://viralbaby.co/checkout?userId=user_xxx"
+}
+```
+
+### Handling 402 (Upload Limit Reached)
+When the free upload limit is exhausted, `POST /api/v1/tiktok/upload` returns:
+```
+HTTP 402
+{
+  "error": "Free upload limit reached. Upgrade to Pro for unlimited uploads.",
+  "plan": "free",
+  "uploadCount": 5,
+  "limit": 5,
+  "upgradeUrl": "https://viralbaby.co/checkout?userId=user_xxx"
+}
+```
+
+When you receive a 402:
+1. Tell the user they've used all 5 free uploads
+2. Share the `upgradeUrl` so they can upgrade to Pro ($49 one-time)
+3. After payment, uploads work immediately — no action needed from the user
+
+### Pro Plan
+After upgrading, `GET /api/v1/billing` returns:
+```json
+{ "plan": "pro", "uploadCount": 5, "limit": "unlimited" }
+```
+
+---
+
 ## Error Responses
 
 All errors follow this format:
@@ -402,5 +446,6 @@ All errors follow this format:
 Common status codes:
 - `400` — Bad request (missing/invalid parameters)
 - `401` — Invalid or missing API key
+- `402` — Free upload limit reached (includes `upgradeUrl`)
 - `404` — Resource not found
 - `500` — Server error
