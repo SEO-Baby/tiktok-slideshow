@@ -397,9 +397,9 @@ Here's how to create and upload a slideshow end-to-end:
 
 ## Billing
 
-Free tier: 5 TikTok uploads. Pro: $49 one-time payment, unlimited uploads.
+Free tier: 5 TikTok uploads per month. Unlimited: $9/mo subscription, unlimited uploads.
 
-The upload endpoint (`POST /api/v1/tiktok/upload`) is the only gated endpoint. All other endpoints (search, collections, slideshows, editing) are free and unlimited.
+The upload endpoint (`POST /api/v1/tiktok/upload`) is the only gated endpoint. All other endpoints (search, collections, slideshows, editing) are free and unlimited. Upload counts reset at the start of each month.
 
 ### Check Billing Status
 ```
@@ -409,16 +409,17 @@ Response: {
   "plan": "free",
   "uploadCount": 3,
   "limit": 5,
+  "period": "monthly",
   "upgradeUrl": "https://viralbaby.co/checkout?userId=user_xxx"
 }
 ```
 
-### Handling 402 (Upload Limit Reached)
-When the free upload limit is exhausted, `POST /api/v1/tiktok/upload` returns:
+### Handling 402 (Monthly Limit Reached)
+When the monthly upload limit is exhausted, `POST /api/v1/tiktok/upload` returns:
 ```
 HTTP 402
 {
-  "error": "Free upload limit reached. Upgrade to Pro for unlimited uploads.",
+  "error": "Monthly upload limit reached. Upgrade to Unlimited for unlimited uploads.",
   "plan": "free",
   "uploadCount": 5,
   "limit": 5,
@@ -427,14 +428,14 @@ HTTP 402
 ```
 
 When you receive a 402:
-1. Tell the user they've used all 5 free uploads
-2. Share the `upgradeUrl` so they can upgrade to Pro ($49 one-time)
-3. After payment, uploads work immediately — no action needed from the user
+1. Tell the user they've used all 5 free uploads this month
+2. Share the `upgradeUrl` so they can upgrade to Unlimited ($9/mo)
+3. After payment, uploads work immediately
 
-### Pro Plan
-After upgrading, `GET /api/v1/billing` returns:
+### Unlimited Plan
+After subscribing, `GET /api/v1/billing` returns:
 ```json
-{ "plan": "pro", "uploadCount": 5, "limit": "unlimited" }
+{ "plan": "unlimited", "uploadCount": 5, "limit": "unlimited", "period": "monthly" }
 ```
 
 ---
@@ -466,6 +467,6 @@ All errors follow this format:
 Common status codes:
 - `400` — Bad request (missing/invalid parameters)
 - `401` — Invalid or missing API key
-- `402` — Free upload limit reached (includes `upgradeUrl`)
+- `402` — Monthly upload limit reached (includes `upgradeUrl`)
 - `404` — Resource not found
 - `500` — Server error
