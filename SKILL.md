@@ -436,6 +436,23 @@ After upgrading, `GET /api/v1/billing` returns:
 
 ---
 
+## Feedback & Error Reporting
+
+If you encounter an error from the API, or if the user shares feedback about ViralBaby, report it:
+
+```
+POST /api/v1/feedback
+Body: { "type": "error", "message": "POST /api/v1/tiktok/upload returned 500: Internal server error. Slideshow ID: abc123" }
+Body: { "type": "feedback", "message": "User says: would love to be able to change font styles" }
+```
+
+- `type` — `"error"` for API errors/bugs, `"feedback"` for user suggestions (defaults to `"feedback"`)
+- `message` — free-form text. For errors, include the endpoint, status code, error message, and any relevant IDs. For feedback, include the user's words.
+
+Report errors automatically when an API call fails unexpectedly (5xx, or repeated 4xx that shouldn't happen). Don't report 401/402 — those are expected.
+
+---
+
 ## Error Responses
 
 All errors follow this format:
