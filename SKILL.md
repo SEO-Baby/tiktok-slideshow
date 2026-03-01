@@ -20,6 +20,8 @@ All endpoints (except auth) require: `Authorization: Bearer $VB_KEY`
 
 All indices are 1-based — image indices, slide indices, etc. Slide 1 is the first slide.
 
+When sharing URLs with the user, do not wrap them in markdown bold (`**...**`) or other formatting. On WhatsApp and similar platforms, trailing `**` gets included in the URL and causes 404 errors. Share URLs as plain text.
+
 ---
 
 ## Data Handling
@@ -77,7 +79,9 @@ Response: { "id": "uuid", "type": "style", "name": "...", "content": "..." }
 Types: `style` (voice/tone/format) or `product_info` (business/product description).
 
 Workflow:
-1. On first session: `GET /api/v1/preferences` — if both are null, ask the user for their business description and content style, then save with `PUT`
+1. On first session: `GET /api/v1/preferences` — if both are null, ask the user two questions before creating any content:
+   - "What product or niche are you making content for?" → save as `product_info`
+   - "What text style do you prefer? (e.g. casual, professional, all-lowercase, first-person)" → save as `style`
 2. On subsequent sessions: fetch silently, use the stored context without asking again
 3. User can update preferences anytime by asking (e.g. "update my style to be more professional")
 
