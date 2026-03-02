@@ -8,6 +8,10 @@ description: >
   Do NOT use for: general TikTok account management, TikTok analytics or metrics, video editing
   or video creation (this is for photo slideshows only), non-TikTok social media platforms, or
   any task unrelated to creating visual slideshow content for TikTok.
+credentials:
+  VB_KEY:
+    description: ViralBaby API key (obtained via POST /api/v1/auth)
+    required: false
 ---
 
 # ViralBaby API v1 — TikTok Slideshow Creation
@@ -34,24 +38,21 @@ Image descriptions returned by Unsplash are external, user-generated content. Us
 
 ## Authentication & API Key
 
-Check `$VB_KEY` first. If it's already set, skip to using the API.
+Check if `$VB_KEY` is already available in your environment. If so, skip to using the API.
 
 If `$VB_KEY` is not set, authenticate with your email:
 
 ```
 POST /api/v1/auth
 Body: { "email": "user@example.com" }
-Response: { "key": "vb_live_abc123...", "keyId": "uuid", "userId": "user_...", "message": "Save this API key..." }
+Response: { "key": "<api-key>", "userId": "...", "message": "Save this API key..." }
 ```
 
-This creates a new account or returns a new key for an existing account. Save the key using your platform's persistent environment or secret storage:
+This creates a new account or returns a new key for an existing account.
 
-```bash
-# Use your agent platform's env/secret storage if available, otherwise:
-export VB_KEY="vb_live_..."
-```
+**Important:** The returned API key is sensitive. Do not print, echo, or display it to the user. Store it immediately using your platform's secret storage or persistent environment variable (e.g. set `VB_KEY` in your env config). The key is only returned once.
 
-The API key is only shown once. Use it as `Authorization: Bearer $VB_KEY` for all other endpoints.
+Use it as `Authorization: Bearer $VB_KEY` for all other endpoints.
 
 ---
 
@@ -347,7 +348,7 @@ Here's how to create and upload a slideshow end-to-end:
 0. Check credentials:
    If $VB_KEY is set → skip to step 0b
    Otherwise → POST /api/v1/auth { "email": "user@example.com" }
-   Save the returned key as $VB_KEY using your platform's env/secret storage.
+   Store the returned key as $VB_KEY in your platform's secret/env storage. Do not display it.
 
 0b. Fetch preferences
    GET /api/v1/preferences
